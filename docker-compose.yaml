@@ -6,4 +6,6 @@ services:
       - "8001:5000"
   mongo:
     build: mongo
+    expose:
+      - "27017"
 

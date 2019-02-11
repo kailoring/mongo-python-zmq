@@ -1,0 +1,43 @@
+<!doctype html>
+<title>CSCI-459 - Mongo/Python Example</title>
+
+<header>
+  <h1>Grade Book</h1>
+</header>
+
+<table>
+  
+  <tr>
+    <th>Student</th>
+    <th colspan="{{ students[0].grades|length }}">Grades</th> 
+  </tr>
+  
+  <form method="post">
+  {% for student in students %}
+    <tr>
+      <td>{{student.name}}</td>
+      {% for grade in student.grades %}
+        <td>
+          {{grade}}
+        </td>
+      {% endfor %}
+      <td>
+        <input type="submit" value="update" name="{{student._id}}">
+      </td>
+      <td>
+        <input type="submit" value="delete" name="{{student._id}}">
+      </td>
+    </tr>
+    {% endfor %}
+    
+  <tr>
+    <td>
+      <input type="submit" value="add" name="add">
+    </td>
+  </tr>
+  
+  </form>
+  
+</table>
+
+</br>{{msg}}

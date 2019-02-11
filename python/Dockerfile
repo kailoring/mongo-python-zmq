@@ -1,6 +1,7 @@
 FROM python:latest
 
 COPY . /app
+COPY templates/* /app/templates/
 
 WORKDIR /app
 

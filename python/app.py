@@ -7,24 +7,45 @@ A simple python web app
 __author__ = """
 Ralph W. Crosby
 crosbyrw@cofc.edu
-College of Charleston
-Charleston, SC
 """
 
 # **************************************************
 
-from flask import Flask
-app = Flask(__name__)
+from flask import Flask, render_template, request
+from pymongo import MongoClient
+
+app = Flask(__name__, template_folder='templates')
+client = MongoClient('mongo')
+db = client.GradeBook
 
 # **************************************************
 
-@app.route('/')
-def hello_world():
-    '''Just say hello to make sure it works
+@app.route('/', methods=['GET','POST'])
+def students():
+    '''Connect to the database and display the contents of the collection
     '''
-    return 'Python/Flask Dockerized for CSCI-459'
 
+    if request.method == 'POST':
+
+        id = list(request.form.keys())[0]
+        cmd = request.form[id]
+        
+        if cmd == 'add':
+            msg='add a record'
+            app.logger.info('add')
+        elif cmd == 'delete':
+            msg=f'delete: {id}'
+            app.logger.info(f'delete: {id}')
+        elif cmd == 'update':
+            msg=f'update: {id}'
+            app.logger.info(f'update: {id}')
+
+    else:
+        msg = ''    
+        
+    return render_template('list.html', students=db.students.find(), msg=msg)
+        
 # **************************************************
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0')
