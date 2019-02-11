@@ -1,0 +1,9 @@
+version: '3'
+services:
+  web:
+    build: python
+    ports:
+      - "8001:5000"
+  mongo:
+    build: mongo
+
