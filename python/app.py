@@ -11,7 +11,7 @@ crosbyrw@cofc.edu
 
 # **************************************************
 
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
@@ -21,7 +21,7 @@ db = client.GradeBook
 
 # **************************************************
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET', 'POST'])
 def students():
     '''
     Connect to the database and display the contents of the collection
@@ -31,29 +31,28 @@ def students():
 
         id = list(request.form.keys())[0]
         cmd = request.form[id]
-        
+
         if cmd == 'add':
 
             return redirect(url_for("create"))
-            
+
         elif cmd == 'delete':
 
-            rcd = db.students.find_one_and_delete({'_id' : ObjectId(id)})
+            rcd = db.students.find_one_and_delete({'_id': ObjectId(id)})
             msg = f'Deleted {rcd["name"]}'
-            
+
         elif cmd == 'update':
-            
-            msg=f'update: {id}'
-            app.logger.info(f'update: {id}')
+
+            return redirect(url_for("update", id=id))
 
     else:
-        msg = ''    
+        msg = ''
 
     students = list(db.students.find())
-   
+
     try:
         n_grades = max(len(s['grades']) for s in students)
-    except:
+    except ValueError:
         n_grades = 1
 
     return render_template('list.html',
@@ -63,24 +62,50 @@ def students():
 
 # **************************************************
 
-@app.route('/create', methods=['GET','POST'])
+@app.route('/create', methods=['GET', 'POST'])
 def create():
     """
     Create a new student record
     """
-    
+
     if request.method == 'POST':
 
         name = request.form["name"]
         grades_text = request.form["grades"]
 
         grades = [float(grade) for grade in grades_text.split(',')]
- 
+
         db.students.insert(dict(name=name, grades=grades))
 
         return redirect(url_for("students"))
 
     return render_template('create.html')
+
+# **************************************************
+
+@app.route('/update', methods=['GET', 'POST'])
+def update():
+    """
+    Update a new student record
+    """
+
+    if request.method == 'POST':
+
+        name = request.form["name"]
+        grades_text = request.form["grades"]
+
+        grades = [float(grade) for grade in grades_text.split(',')]
+
+        db.students.update_one({'_id': ObjectId(request.args['id'])},
+                               {'$set': {'name': name, 'grades': grades}})
+
+        return redirect(url_for("students"))
+
+    student = db.students.find_one({'_id': ObjectId(request.args['id'])})
+
+    return render_template('update.html',
+                           name=student['name'],
+                           grades=(', ').join(str(grade) for grade in student['grades']))
 
 
 # **************************************************

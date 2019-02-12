@@ -2,7 +2,7 @@
 <title>CSCI-459 - Mongo/Python Example</title>
 
 <header>
-  <h1>Grade Book - Add New Student</h1>
+  <h1>Grade Book - Update Student</h1>
 </header>
 
 <form method="post">
@@ -11,12 +11,12 @@
 
     <tr>
       <td>Name:</td>
-      <td><input type="text" name="name"></td>
+      <td><input type="text" name="name" value="{{ name }}"></td>
     </tr>
     
     <tr>
       <td>Grades:</td>
-      <td><input type="text" name="grades"></td>
+      <td><input type="text" name="grades" value="{{ grades }}"></td>
     </tr>
 
     <tr>
