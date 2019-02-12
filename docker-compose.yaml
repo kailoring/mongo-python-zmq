@@ -2,10 +2,19 @@ version: '3'
 services:
   
   web:
-    build: python
+    build: webclient
     ports:
       - "8001:5000"
-      
+    environment:
+      ZMQ_REQ_PORT: 3000
+
+  server:
+    build: server
+    expose:
+      - "3000"
+    environment:
+      ZMQ_BIND_PORT: 3000
+
   mongo:
     build: mongo
     expose:

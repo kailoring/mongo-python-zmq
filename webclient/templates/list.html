@@ -17,8 +17,8 @@
     <tr>
       <td>{{student.name}}</td>
       {% for grade in student.grades %}
-        <td>
-          {{grade}}
+        <td align="right">
+          {{'%0.1f'| format(grade)}}
         </td>
       {% endfor %}
       <td>

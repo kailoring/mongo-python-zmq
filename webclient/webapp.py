@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-A simple python web app
+A simple python web app that interfaces with a business logic server using ZeroMQ
 """
 
 __author__ = """
@@ -12,12 +12,26 @@ crosbyrw@cofc.edu
 # **************************************************
 
 from flask import Flask, render_template, request, redirect, url_for
-from pymongo import MongoClient
-from bson.objectid import ObjectId
+import os
+import pickle
+import zmq
 
 app = Flask(__name__, template_folder='templates')
-client = MongoClient('mongo')
-db = client.GradeBook
+
+# zmq setup
+sock = zmq.Context().socket(zmq.REQ)
+sock.connect(f"tcp://server:{os.environ['ZMQ_REQ_PORT']}")
+
+# **************************************************
+
+def zmq_send_recv(msg):
+    """
+    Send a message to the server and wait for an answer
+
+    Use Python's pickle capability to serialize/deserialize the data
+    """
+    sock.send(pickle.dumps(msg))
+    return pickle.loads(sock.recv())
 
 # **************************************************
 
@@ -38,8 +52,8 @@ def students():
 
         elif cmd == 'delete':
 
-            rcd = db.students.find_one_and_delete({'_id': ObjectId(id)})
-            msg = f'Deleted {rcd["name"]}'
+            rval = zmq_send_recv({'cmd': 'delete', 'id': id})
+            msg = f'Deleted {rval["name"]}'
 
         elif cmd == 'update':
 
@@ -48,7 +62,7 @@ def students():
     else:
         msg = ''
 
-    students = list(db.students.find())
+    students = zmq_send_recv({'cmd': 'list'})
 
     try:
         n_grades = max(len(s['grades']) for s in students)
@@ -70,12 +84,9 @@ def create():
 
     if request.method == 'POST':
 
-        name = request.form["name"]
-        grades_text = request.form["grades"]
-
-        grades = [float(grade) for grade in grades_text.split(',')]
-
-        db.students.insert(dict(name=name, grades=grades))
+        zmq_send_recv(dict(cmd='create',
+                           name=request.form["name"],
+                           grades=request.form["grades"]))
 
         return redirect(url_for("students"))
 
@@ -91,17 +102,15 @@ def update():
 
     if request.method == 'POST':
 
-        name = request.form["name"]
-        grades_text = request.form["grades"]
-
-        grades = [float(grade) for grade in grades_text.split(',')]
-
-        db.students.update_one({'_id': ObjectId(request.args['id'])},
-                               {'$set': {'name': name, 'grades': grades}})
+        zmq_send_recv(dict(cmd='update',
+                           id=request.args['id'],
+                           name=request.form["name"],
+                           grades=request.form["grades"]))
 
         return redirect(url_for("students"))
 
-    student = db.students.find_one({'_id': ObjectId(request.args['id'])})
+    student = zmq_send_recv(dict(cmd='findone',
+                                 id=request.args['id']))
 
     return render_template('update.html',
                            name=student['name'],
