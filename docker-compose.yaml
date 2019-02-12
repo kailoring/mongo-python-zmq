@@ -1,11 +1,19 @@
 version: '3'
 services:
+  
   web:
     build: python
     ports:
       - "8001:5000"
+      
   mongo:
     build: mongo
     expose:
       - "27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
 
+volumes:
+  mongo_data:
+  mongo_config:  
