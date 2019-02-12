@@ -13,6 +13,7 @@ crosbyrw@cofc.edu
 
 from flask import Flask, render_template, request
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 app = Flask(__name__, template_folder='templates')
 client = MongoClient('mongo')
@@ -31,19 +32,34 @@ def students():
         cmd = request.form[id]
         
         if cmd == 'add':
+            
             msg='add a record'
             app.logger.info('add')
+            
         elif cmd == 'delete':
-            msg=f'delete: {id}'
-            app.logger.info(f'delete: {id}')
+
+            rcd = db.students.find_one_and_delete({'_id' : ObjectId(id)})
+            msg = f'Deleted {rcd["name"]}'
+            
         elif cmd == 'update':
+            
             msg=f'update: {id}'
             app.logger.info(f'update: {id}')
 
     else:
         msg = ''    
-        
-    return render_template('list.html', students=db.students.find(), msg=msg)
+
+    students = db.students.find()
+
+    try:
+        n_grades = len(students[0].grades)
+    except:
+        n_grades = 1
+
+    return render_template('list.html',
+                           students=students,
+                           msg=msg,
+                           n_grades=n_grades)
         
 # **************************************************
 
