@@ -1,9 +1,26 @@
-# Python, ZeroMQ, Mongo Example
 
-This example provides basic CRUD operations using a python flask container communicating using ZeroMQ to a business logic server layer further connected to a MongoDB container.
+# Python, ZeroMQ, Mongo
 
-Of interest:
+Simple Ansible application with CRUD functionality that uses a python flask container with ZeroMQ to work with a business logic server layer while being connected to a MongoDB container. The application uses a persistent storage volume.
 
-- Use of `docker-compose` to build and run the application
-- Use of a persistent storage volume
-- Use of ZeroMQ to pass messages to the business logic layer
+Once the playbook is ran, application is found on localhost:8001
+
+## Files
+
+- `ExamplePlaybook.yaml`
+
+Responsible for building the webclient, server and database containers. In this file you also create the appropriate volumes and define the services you wish to start.
+
+## Directories
+
+### mongo
+
+This directory contains the files necessary to initiate the database. It further inserts a couple of records into the database.
+
+### server
+
+This directory contains the files necessary to build the web server using a python app.
+
+### webclient
+
+This directory contains the code to run the python application using the flask package.

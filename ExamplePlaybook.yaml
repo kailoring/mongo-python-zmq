@@ -1,0 +1,90 @@
+---
+- hosts: localhost
+
+  tasks:
+#  web:
+#    build: webclient
+#    ports:
+#      - "8001:5000"
+#    environment:
+#      ZMQ_REQ_PORT: 3000
+    - name: Build webclient container
+      docker_image:
+        name: webclient
+        path: ./webclient
+
+  #  server:
+  #    build: server
+  #    expose:
+  #      - "3000"
+  #    environment:
+  #      ZMQ_BIND_PORT: 3000
+    - name: Build server container
+      docker_image:
+        name: server
+        path: ./server
+
+
+   # mongo:
+   #   build: mongo
+   #   expose:
+   #     - "27017"
+   #   volumes:
+   #     - mongo_data:/data/db
+   #     - mongo_config:/data/configdb
+    - name: Build mongo container
+      docker_image:
+        name: database
+        path: ./mongo
+
+    - name: Create docker volume for the database
+      docker_volume:
+        name: mongo_data
+      register: created_volume
+
+    - name: Create docker volume for the database configuration
+      docker_volume:
+        name: mongo_config
+
+    - name: Start mongo database container
+      docker_container:
+        name: database
+        image: database
+        published_ports:
+          - 27017:27017
+        volumes:
+          - mongo_data:/data/db
+          - mongo_config:/data/configdb
+
+    - name: Wait for the database to start up
+      wait_for:
+        timeout: 10
+      when: created_volume.changed
+
+    - name: Create student collection
+      shell: docker exec -i database mongo < mongo/initdb.d/CreateObjects.mongo
+      when: created_volume.changed
+
+    - name: Add sample data
+      shell: docker exec -i database mongo < mongo/initdb.d/AddStudents.mongo
+      when: created_volume.changed
+
+    - name: Start server container
+      docker_container:
+        name: server
+        image: server
+        links:
+          - database:mongo
+        published_ports:
+          - 3000
+        env:
+          ZMQ_BIND_PORT: '3000'
+
+    - name: Start webclient container
+      docker_container:
+        name: webclient
+        image: webclient
+        published_ports:
+          - 8001:5000
+        env:
+          ZMQ_REQ_PORT: '3000'

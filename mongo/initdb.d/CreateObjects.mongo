@@ -1,0 +1,4 @@
+use GradeBook
+
+db.createCollection("students")
+
