@@ -13,6 +13,10 @@ Responsible for building the webclient, server and database containers. In this 
 
 ## Directories
 
+### adr
+
+This directory contains adr files used to document decisions regarding the application.
+
 ### mongo
 
 This directory contains the files necessary to initiate the database. It further inserts a couple of records into the database.
